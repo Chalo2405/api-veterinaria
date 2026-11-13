@@ -1,40 +1,43 @@
+
 package com.vetcare.veterinaria;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class VeterinariaController {
 
+    private final Map<Integer, Map<String, Object>> mascotas = new HashMap<>();
+    private int siguienteId = 1;
+
     @GetMapping("/mascota/{id}")
-    public Map<String, Object> consultarMascota(
-            @PathVariable(name = "id") int id) {
+    public Map<String, Object> consultarMascota(@PathVariable int id) {
 
-        Map<String, Object> mascota = new HashMap<>();
+        Map<String, Object> mascota = mascotas.get(id);
 
-        mascota.put("id", id);
-        mascota.put("nombre", "Mascota " + id);
-        mascota.put("especie", "Perro");
-        mascota.put("edad", 3);
-        mascota.put("propietario", "Luis");
+        if (mascota == null) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Mascota no encontrada"
+            );
+        }
 
         return mascota;
     }
+)
 
     @PostMapping("/mascotas/nueva")
+    @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> registrarMascota(
             @RequestBody Map<String, Object> nueva) {
 
-        Date ahora = new Date();
+        int id = siguienteId++;
 
-        nueva.put("id", ahora.getTime());
+        nueva.put("id", id);
+        mascotas.put(id, nueva);
 
         return nueva;
     }
